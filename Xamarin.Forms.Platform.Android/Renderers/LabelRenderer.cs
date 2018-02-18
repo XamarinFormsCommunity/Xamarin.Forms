@@ -15,6 +15,7 @@ namespace Xamarin.Forms.Platform.Android
 		ColorStateList _labelTextColorDefault;
 		int _lastConstraintHeight;
 		int _lastConstraintWidth;
+		TextDecorations _lastTextDecorations;
 
 		SizeRequest? _lastSizeRequest;
 		float _lastTextSize = -1f;
@@ -106,7 +107,7 @@ namespace Xamarin.Forms.Platform.Android
 				if (e.OldElement.HorizontalTextAlignment != e.NewElement.HorizontalTextAlignment || e.OldElement.VerticalTextAlignment != e.NewElement.VerticalTextAlignment)
 					UpdateGravity();
 			}
-
+			UpdateTextDecorations();
 			_motionEventHelper.UpdateElement(e.NewElement);
 		}
 
@@ -122,6 +123,8 @@ namespace Xamarin.Forms.Platform.Android
 				UpdateText();
 			else if (e.PropertyName == Label.LineBreakModeProperty.PropertyName)
 				UpdateLineBreakMode();
+			else if (e.PropertyName == Label.TextDecorationsProperty.PropertyName)
+				UpdateTextDecorations();
 			else if (e.PropertyName == Label.TextProperty.PropertyName || e.PropertyName == Label.FormattedTextProperty.PropertyName)
 				UpdateText();
 		}
@@ -157,6 +160,27 @@ namespace Xamarin.Forms.Platform.Android
 			{
 				_view.SetTextSize(ComplexUnitType.Sp, newTextSize);
 				_lastTextSize = newTextSize;
+			}
+		}
+
+		void UpdateTextDecorations()
+		{
+			var textDecorations = Element.TextDecorations;
+			if (Element.IsSet(Label.TextDecorationsProperty) && textDecorations != _lastTextDecorations)
+			{
+				_view.PaintFlags = _view.PaintFlags & ~PaintFlags.StrikeThruText;
+				_view.PaintFlags = _view.PaintFlags & ~PaintFlags.UnderlineText;
+
+				if ((textDecorations & TextDecorations.StrikeThrough) != 0)
+				{
+					_view.PaintFlags |= PaintFlags.StrikeThruText;
+				}
+				if ((textDecorations & TextDecorations.Underline) != 0)
+				{
+					_view.PaintFlags |= PaintFlags.UnderlineText;
+				}
+
+				_lastTextDecorations = Element.TextDecorations;
 			}
 		}
 

@@ -32,6 +32,8 @@ namespace Xamarin.Forms
 
 		public static readonly BindableProperty FontAttributesProperty = FontElement.FontAttributesProperty;
 
+		public static readonly BindableProperty TextDecorationsProperty = BindableProperty.Create("TextDecorations", typeof(TextDecorations), typeof(Label), TextDecorations.None);
+
 		public static readonly BindableProperty FormattedTextProperty = BindableProperty.Create("FormattedText", typeof(FormattedString), typeof(Label), default(FormattedString),
 			propertyChanging: (bindable, oldvalue, newvalue) =>
 			{
@@ -117,6 +119,12 @@ namespace Xamarin.Forms
 		{
 			get { return (FontAttributes)GetValue(FontAttributesProperty); }
 			set { SetValue(FontAttributesProperty, value); }
+		}
+
+		public TextDecorations TextDecorations
+		{
+			get { return (TextDecorations)GetValue(TextDecorationsProperty); }
+			set { SetValue(TextDecorationsProperty, value); }
 		}
 
 		public string FontFamily

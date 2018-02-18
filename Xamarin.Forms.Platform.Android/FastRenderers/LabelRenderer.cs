@@ -18,6 +18,7 @@ namespace Xamarin.Forms.Platform.Android.FastRenderers
 		readonly ColorStateList _labelTextColorDefault;
 		int _lastConstraintHeight;
 		int _lastConstraintWidth;
+		TextDecorations _lastTextDecorations;
 		SizeRequest? _lastSizeRequest;
 		float _lastTextSize = -1f;
 		Typeface _lastTypeface;
@@ -260,6 +261,27 @@ namespace Xamarin.Forms.Platform.Android.FastRenderers
 			{
 				SetTextSize(ComplexUnitType.Sp, newTextSize);
 				_lastTextSize = newTextSize;
+			}
+		}
+
+		void UpdateTextDecorations()
+		{
+			var textDecorations = Element.TextDecorations;
+			if (Element.IsSet(Label.TextDecorationsProperty) && textDecorations != _lastTextDecorations)
+			{
+				PaintFlags = PaintFlags & ~PaintFlags.StrikeThruText;
+				PaintFlags = PaintFlags & ~PaintFlags.UnderlineText;
+
+				if ((textDecorations & TextDecorations.StrikeThrough) != 0)
+				{
+					PaintFlags |= PaintFlags.StrikeThruText;
+				}
+				if ((textDecorations & TextDecorations.Underline) != 0)
+				{
+					PaintFlags |= PaintFlags.UnderlineText;
+				}
+
+				_lastTextDecorations = Element.TextDecorations;
 			}
 		}
 
