@@ -8,7 +8,7 @@ using Xamarin.Forms.Platform;
 namespace Xamarin.Forms
 {
 	[RenderWith(typeof(_ButtonRenderer))]
-	public class Button : View, IFontElement, ITextElement, IBorderElement, IButtonController, IElementConfiguration<Button>
+    public class Button : View, IFontElement, ITextElement, IBorderElement, IPaddingElement, IButtonController, IElementConfiguration<Button>
 	{
 		const double DefaultSpacing = 10;
 		const int DefaultBorderRadius = 5;
@@ -50,6 +50,9 @@ namespace Xamarin.Forms
 			propertyChanging: (bindable, oldvalue, newvalue) => ((Button)bindable).OnSourcePropertyChanging((ImageSource)oldvalue, (ImageSource)newvalue),
 			propertyChanged: (bindable, oldvalue, newvalue) => ((Button)bindable).OnSourcePropertyChanged((ImageSource)oldvalue, (ImageSource)newvalue));
 
+        public static readonly BindableProperty PaddingProperty =
+            PaddingElement.PaddingProperty;
+        
 		readonly Lazy<PlatformConfigurationRegistry<Button>> _platformConfigurationRegistry;
 
 		public Color BorderColor
@@ -106,6 +109,12 @@ namespace Xamarin.Forms
 			get { return (FileImageSource)GetValue(ImageProperty); }
 			set { SetValue(ImageProperty, value); }
 		}
+
+        public Thickness Padding
+        {
+            get { return (Thickness)GetValue(PaddingElement.PaddingProperty); }
+            set { SetValue(PaddingElement.PaddingProperty, value); }
+        }
 
 		public string Text
 		{
@@ -230,6 +239,8 @@ namespace Xamarin.Forms
 		void IFontElement.OnFontChanged(Font oldValue, Font newValue) =>
 			InvalidateMeasureInternal(InvalidationTrigger.MeasureChanged);
 
+        Thickness IPaddingElement.PaddingDefaultValueCreator() => default(Thickness);
+
 		void OnCommandChanged()
 		{
 			if (Command != null)
@@ -309,7 +320,11 @@ namespace Xamarin.Forms
 		{
 		}
 
-		[DebuggerDisplay("Image Position = {Position}, Spacing = {Spacing}")]
+        void IPaddingElement.OnPaddingPropertyChanged(Thickness oldValue, Thickness newValue)
+        {
+        }
+
+        [DebuggerDisplay("Image Position = {Position}, Spacing = {Spacing}")]
 		[TypeConverter(typeof(ButtonContentTypeConverter))]
 		public sealed class ButtonContentLayout
 		{

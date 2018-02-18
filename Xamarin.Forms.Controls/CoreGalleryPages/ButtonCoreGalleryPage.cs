@@ -79,8 +79,18 @@ namespace Xamarin.Forms.Controls
 					Text = "Image", 
 					Image = new FileImageSource { File = "bank.png" }
 				}
-			)
-			;
+			);
+
+            var paddingContainer = new ViewContainer<Button>(Test.Button.Padding,
+                new Button
+                {
+                    Text = "Padding",
+                    BorderColor = Color.Red, 
+                    BorderWidth = 5,
+                    Padding = new Thickness(20, 15, 10, 5)
+                }
+            );
+            
 			var textContainer = new ViewContainer<Button> (Test.Button.Text, 
 				new Button {
 					Text = "Text"
@@ -100,9 +110,9 @@ namespace Xamarin.Forms.Controls
 			Add (commandContainer);
 			Add (fontContainer);
 			Add (imageContainer);
+            Add (paddingContainer); 
 			Add (textContainer);
 			Add (textColorContainer);
-			//stackLayout.Children.Add (textColorContainer);
 		}
 	}
 }

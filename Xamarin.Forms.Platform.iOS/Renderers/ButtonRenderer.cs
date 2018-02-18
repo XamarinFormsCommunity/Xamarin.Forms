@@ -78,6 +78,7 @@ namespace Xamarin.Forms.Platform.iOS
 				UpdateText();
 				UpdateFont();
 				UpdateBorder();
+                UpdatePadding();
 				UpdateImage();
 				UpdateTextColor();
 			}
@@ -100,6 +101,8 @@ namespace Xamarin.Forms.Platform.iOS
 				UpdateFont();
 			else if (e.PropertyName == Button.BorderWidthProperty.PropertyName || e.PropertyName == Button.CornerRadiusProperty.PropertyName || e.PropertyName == Button.BorderColorProperty.PropertyName)
 				UpdateBorder();
+            else if (e.PropertyName == Button.PaddingProperty.PropertyName)
+                UpdatePadding();
 			else if (e.PropertyName == Button.ImageProperty.PropertyName)
 				UpdateImage();
 		}
@@ -162,6 +165,21 @@ namespace Xamarin.Forms.Platform.iOS
 		{
 			Control.TitleLabel.Font = Element.ToUIFont();
 		}
+
+        void UpdatePadding()
+        {
+            SetContentEdgeInsets();
+        }
+
+        void SetContentEdgeInsets()
+        {
+            Control.ContentEdgeInsets = new UIEdgeInsets(
+                    (int)Element.Padding.Top,
+                    (int)Element.Padding.Left,
+                    (int)Element.Padding.Bottom,
+                    (int)Element.Padding.Right
+            ); 
+        }
 
 		async void UpdateImage()
 		{
@@ -234,7 +252,7 @@ namespace Xamarin.Forms.Platform.iOS
 
 			Control.ImageEdgeInsets = new UIEdgeInsets(0, 0, 0, 0);
 			Control.TitleEdgeInsets = new UIEdgeInsets(0, 0, 0, 0);
-			Control.ContentEdgeInsets = new UIEdgeInsets(0, 0, 0, 0);
+            SetContentEdgeInsets();
 		}
 
 		void ComputeEdgeInsets(UIButton button, Button.ButtonContentLayout layout)

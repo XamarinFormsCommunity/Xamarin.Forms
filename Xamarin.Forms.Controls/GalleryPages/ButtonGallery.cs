@@ -63,6 +63,16 @@ namespace Xamarin.Forms.Controls
 				BorderRadius = 5
 #pragma warning restore
 			};
+
+            var paddingButton = new Button
+            {
+                Text = "Padding Button",
+                BorderColor = Color.Black,
+                Padding = new Thickness(20,15,10,5),
+                BorderWidth = 1,
+                BorderRadius = 5
+            };
+
 			var timer = new Button { Text = "Timer" };
 			var busy = new Button { Text = "Toggle Busy" };
 			var alert = new Button { Text = "Alert" };
@@ -109,6 +119,7 @@ namespace Xamarin.Forms.Controls
 						},
 						canTapLabel,
 						click,
+                        paddingButton,
 						rotate,
 						transparent,
 						themedButton,
