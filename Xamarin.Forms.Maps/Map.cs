@@ -10,18 +10,42 @@ namespace Xamarin.Forms.Maps
 {
 	public class Map : View, IEnumerable<Pin>
 	{
-		public static readonly BindableProperty PinsSourceProperty = BindableProperty.Create("PinsSource", typeof(IList<Pin>), typeof(Map), default(IList<Pin>), BindingMode.TwoWay, null, propertyChanged: (bindable, oldvalue, newvalue) =>
+		public static readonly BindableProperty PinsSourceProperty = BindableProperty.Create(nameof(PinsSource), typeof(ObservableCollection<Pin>), typeof(Map), default(ObservableCollection<Pin>), propertyChanged: (bindable, oldvalue, newvalue) =>
 		{
 			if (newvalue != null)
 			{
-				var pins = (IList<Pin>)newvalue;
+				var map = (Map)bindable;
+				var pins = (ObservableCollection<Pin>)newvalue;
 
 				foreach (var pin in pins)
-					((Map)bindable).Pins.Add(pin);
+					map.Pins.Add(pin);
+
+				pins.CollectionChanged += (sender, e) =>
+				{
+					Device.BeginInvokeOnMainThread(() =>
+					{
+						switch (e.Action)
+						{
+							case NotifyCollectionChangedAction.Add:
+							case NotifyCollectionChangedAction.Replace:
+							case NotifyCollectionChangedAction.Remove:
+								if (e.OldItems != null)
+									foreach (var item in e.OldItems)
+										map.Pins.Remove((Pin)item);
+								if (e.NewItems != null)
+									foreach (var item in e.NewItems)
+										map.Pins.Add((Pin)item);
+								break;
+							case NotifyCollectionChangedAction.Reset:
+								map.Pins.Clear();
+								break;
+						}
+					});
+				};
 			}
 		});
 
-		public static readonly BindableProperty PinTemplateProperty = BindableProperty.Create("PinTemplate", typeof(DataTemplate), typeof(Map));
+		public static readonly BindableProperty PinTemplateProperty = BindableProperty.Create(nameof(PinTemplate), typeof(DataTemplate), typeof(Map));
 
 		public static readonly BindableProperty MapTypeProperty = BindableProperty.Create("MapType", typeof(MapType), typeof(Map), default(MapType));
 
@@ -48,9 +72,9 @@ namespace Xamarin.Forms.Maps
 		{
 		}
 
-		public IList<Pin> PinsSource
+		public ObservableCollection<Pin> PinsSource
 		{
-			get { return (IList<Pin>)GetValue(PinsSourceProperty); }
+			get { return (ObservableCollection<Pin>)GetValue(PinsSourceProperty); }
 			set { SetValue(PinsSourceProperty, value); }
 		}
 

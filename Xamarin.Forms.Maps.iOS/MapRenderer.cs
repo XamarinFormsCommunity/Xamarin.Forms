@@ -9,6 +9,7 @@ using MapKit;
 using ObjCRuntime;
 using RectangleF = CoreGraphics.CGRect;
 using Foundation;
+using CoreGraphics;
 
 #if __MOBILE__
 using UIKit;
@@ -35,7 +36,7 @@ namespace Xamarin.Forms.Maps.MacOS
 
 		public override MKAnnotationView GetViewForAnnotation(MKMapView mapView, IMKAnnotation annotation)
 		{
-			MKPinAnnotationView mapPin = null;
+			MKAnnotationView mapPin = null;
 
 			// https://bugzilla.xamarin.com/show_bug.cgi?id=26416
 			var userLocationAnnotation = Runtime.GetNSObject(annotation.Handle) as MKUserLocation;
@@ -43,20 +44,43 @@ namespace Xamarin.Forms.Maps.MacOS
 				return null;
 
 			const string defaultPinId = "defaultPin";
-			mapPin = (MKPinAnnotationView)mapView.DequeueReusableAnnotation(defaultPinId);
+			const string defaultCustomPinId = "defaultCustomPin";
+
+			var pinTemplate = _map.PinTemplate;
+
+			mapPin = mapView.DequeueReusableAnnotation(pinTemplate == null ? defaultPinId : defaultCustomPinId);
+
 			if (mapPin == null)
 			{
+#if __MOBILE__
+				if (pinTemplate != null)
+				{
+					mapPin = new CustomMKAnnotationView(annotation, defaultCustomPinId);
+
+					var viewCell = pinTemplate.CreateContent() as ViewCell;
+					var view = viewCell.View;
+
+					mapPin.BackgroundColor = UIColor.Clear;
+					mapPin.Image = PinTemplateHelper.ConvertViewToImage(view, new RectangleF(0, 0, 48, 48));
+				}
+				else
+				{
+					mapPin = new MKPinAnnotationView(annotation, defaultPinId);
+				}
+#else
 				mapPin = new MKPinAnnotationView(annotation, defaultPinId);
+#endif
+
 				mapPin.CanShowCallout = true;
 			}
 
 			mapPin.Annotation = annotation;
 			AttachGestureToPin(mapPin, annotation);
-
+		
 			return mapPin;
 		}
 #if __MOBILE__
-		void AttachGestureToPin(MKPinAnnotationView mapPin, IMKAnnotation annotation)
+		void AttachGestureToPin(MKAnnotationView mapPin, IMKAnnotation annotation)
 		{
 
 			UIGestureRecognizer[] recognizers = mapPin.GestureRecognizers;
@@ -311,12 +335,14 @@ namespace Xamarin.Forms.Maps.MacOS
 
 		protected virtual IMKAnnotation CreateAnnotation(Pin pin)
 		{
-			return new MKPointAnnotation
+			var mkPointAnnotation = new MKPointAnnotation
 			{
 				Title = pin.Label,
-				Subtitle = pin.Address ?? "",
+				Subtitle = pin.Address ?? string.Empty,
 				Coordinate = new CLLocationCoordinate2D(pin.Position.Latitude, pin.Position.Longitude)
 			};
+
+			return mkPointAnnotation;
 		}
 
 		void UpdateRegion()
