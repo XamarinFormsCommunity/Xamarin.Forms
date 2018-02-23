@@ -6,8 +6,6 @@ namespace Xamarin.Forms
 			coerceValue: (o, v) => (Keyboard)v ?? Keyboard.Default);
 		public static readonly BindableProperty IsSpellCheckEnabledProperty = BindableProperty.Create("IsSpellCheckEnabled", typeof(bool), typeof(InputView), true);
 
-		public static readonly BindableProperty IsReadOnlyProperty = BindableProperty.Create(nameof(IsReadOnly), typeof(bool), typeof(InputView), false);
-
 		internal InputView()
 		{
 		}
@@ -22,12 +20,6 @@ namespace Xamarin.Forms
 		{
 			get { return (bool)GetValue(IsSpellCheckEnabledProperty); }
 			set { SetValue(IsSpellCheckEnabledProperty, value); }
-		}
-
-		public bool IsReadOnly
-		{
-			get { return (bool)GetValue(IsReadOnlyProperty); }
-			set { SetValue(IsReadOnlyProperty, value); }
 		}
 	}
 }

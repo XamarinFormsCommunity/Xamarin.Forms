@@ -59,7 +59,6 @@ namespace Xamarin.Forms.Platform.MacOS
 				UpdateColor();
 				UpdateFont();
 				UpdateAlignment();
-				UpdateIsReadOnly();
 			}
 		}
 
@@ -89,8 +88,6 @@ namespace Xamarin.Forms.Platform.MacOS
 			}
 			else if (e.PropertyName == VisualElement.FlowDirectionProperty.PropertyName)
 				UpdateAlignment();
-			else if (e.PropertyName == Xamarin.Forms.InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
 
 			base.OnElementPropertyChanged(sender, e);
 		}
@@ -193,11 +190,6 @@ namespace Xamarin.Forms.Platform.MacOS
 			// ReSharper disable once RedundantCheckBeforeAssignment
 			if (Control.StringValue != Element.Text)
 				Control.StringValue = Element.Text ?? string.Empty;
-		}
-
-		void UpdateIsReadOnly()
-		{
-			Control.Editable = !Element.IsReadOnly;
 		}
 	}
 }

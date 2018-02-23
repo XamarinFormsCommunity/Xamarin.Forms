@@ -97,7 +97,6 @@ namespace Xamarin.Forms.Platform.Android
 			UpdateFont();
 			UpdatePlaceholderColor();
 			UpdateImeOptions();
-			UpdateIsReadOnly();
 		}
 
 		protected override void Dispose(bool disposing)
@@ -158,8 +157,6 @@ namespace Xamarin.Forms.Platform.Android
 				UpdateAlignment();
 			else if (e.PropertyName == PlatformConfiguration.AndroidSpecific.Entry.ImeOptionsProperty.PropertyName)
 				UpdateImeOptions();
-			else if (e.PropertyName == InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
 
 			base.OnElementPropertyChanged(sender, e);
 		}
@@ -231,11 +228,6 @@ namespace Xamarin.Forms.Platform.Android
 		void OnKeyboardBackPressed(object sender, EventArgs eventArgs)
 		{
 			Control?.ClearFocus();
-		}
-
-		void UpdateIsReadOnly()
-		{
-			Control.Focusable = !Element.IsReadOnly;
-		}
+		}	
 	}
 }

@@ -48,7 +48,6 @@ namespace Xamarin.Forms.Platform.UWP
 				UpdateTextAlignment();
 				UpdateFlowDirection();
 				UpdateDetectReadingOrderFromContent();
-				UpdateIsReadOnly();
 			}
 
 			base.OnElementChanged(e);
@@ -104,10 +103,6 @@ namespace Xamarin.Forms.Platform.UWP
 			}
 			else if (e.PropertyName == Specifics.DetectReadingOrderFromContentProperty.PropertyName)
 				UpdateDetectReadingOrderFromContent();
-			else if (e.PropertyName == InputView.IsReadOnlyProperty.PropertyName)
-			{
-				UpdateIsReadOnly();
-			}
 		}
 
 		void OnLostFocus(object sender, RoutedEventArgs e)
@@ -236,11 +231,6 @@ namespace Xamarin.Forms.Platform.UWP
 					Control.TextReadingOrder = TextReadingOrder.UseFlowDirection;
 				}
 			}
-		}
-
-		void UpdateIsReadOnly()
-		{
-			Control.IsReadOnly = Element.IsReadOnly;
 		}
 	}
 }

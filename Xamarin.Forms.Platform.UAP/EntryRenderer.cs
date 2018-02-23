@@ -48,7 +48,6 @@ namespace Xamarin.Forms.Platform.UWP
 				UpdateAlignment();
 				UpdatePlaceholderColor();
 				UpdateDetectReadingOrderFromContent();
-				UpdateIsReadOnly();
 			}
 		}
 
@@ -93,8 +92,6 @@ namespace Xamarin.Forms.Platform.UWP
 				UpdateAlignment();
 			else if (e.PropertyName == Specifics.DetectReadingOrderFromContentProperty.PropertyName)
 				UpdateDetectReadingOrderFromContent();
-			else if (e.PropertyName == InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
 		}
 
 		protected override void UpdateBackgroundColor()
@@ -238,11 +235,6 @@ namespace Xamarin.Forms.Platform.UWP
 					Control.TextReadingOrder = TextReadingOrder.UseFlowDirection;
 				}
 			}
-		}
-
-		void UpdateIsReadOnly()
-		{
-			Control.IsReadOnly = Element.IsReadOnly;
 		}
 	}
 }

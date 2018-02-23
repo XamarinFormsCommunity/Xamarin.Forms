@@ -64,10 +64,7 @@ namespace Xamarin.Forms.Controls
 			var passwordColorContainer = new ViewContainer<Entry> (Test.Entry.PasswordColor,
 				new Entry { IsPassword = true, Text = "12345", TextColor = Color.Red });
 
-			var readOnlyContainer = new ViewContainer<Entry>(Test.Entry.IsReadOnly,
-				new Entry { Text = "This is read-only Entry", IsReadOnly = true });
-
-			Add(isPasswordContainer);
+			Add (isPasswordContainer);
 			Add (completedContainer);
 			Add (placeholderContainer);
 			Add (keyboardContainer);
@@ -90,7 +87,6 @@ namespace Xamarin.Forms.Controls
 			Add (textColorDisabledContainer);
 			Add (placeholderColorDisabledContainer);
 			Add (passwordColorContainer);
-			Add (readOnlyContainer);
 		}
 	}
 }

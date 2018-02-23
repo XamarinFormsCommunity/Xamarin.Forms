@@ -68,7 +68,6 @@ namespace Xamarin.Forms.Platform.iOS
 			UpdateKeyboard();
 			UpdateEditable();
 			UpdateTextAlignment();
-			UpdateIsReadOnly();
 		}
 
 		protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -93,8 +92,6 @@ namespace Xamarin.Forms.Platform.iOS
 				UpdateFont();
 			else if (e.PropertyName == VisualElement.FlowDirectionProperty.PropertyName)
 				UpdateTextAlignment();
-			else if (e.PropertyName == Xamarin.Forms.InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
 		}
 
 		void HandleChanged(object sender, EventArgs e)
@@ -163,11 +160,6 @@ namespace Xamarin.Forms.Platform.iOS
 				Control.TextColor = UIColor.Black;
 			else
 				Control.TextColor = textColor.ToUIColor();
-		}
-
-		void UpdateIsReadOnly()
-		{
-			Control.UserInteractionEnabled = !Element.IsReadOnly;
 		}
 	}
 }

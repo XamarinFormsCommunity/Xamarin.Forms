@@ -13,7 +13,6 @@ namespace Xamarin.Forms.Platform.Tizen
 			RegisterPropertyHandler(Editor.FontFamilyProperty, UpdateFontFamily);
 			RegisterPropertyHandler(Editor.FontAttributesProperty, UpdateFontAttributes);
 			RegisterPropertyHandler(Editor.KeyboardProperty, UpdateKeyboard);
-			RegisterPropertyHandler(Editor.IsReadOnlyProperty, UpdateIsReadOnly);
 		}
 
 		protected override void OnElementChanged(ElementChangedEventArgs<Editor> e)
@@ -115,11 +114,6 @@ namespace Xamarin.Forms.Platform.Tizen
 				return;
 
 			Control.Keyboard = Element.Keyboard.ToNative();
-		}
-
-		void UpdateIsReadOnly()
-		{
-			Control.AllowFocus(!Element.IsReadOnly);
 		}
 	}
 }
