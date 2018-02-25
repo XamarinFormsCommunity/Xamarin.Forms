@@ -9,6 +9,7 @@ using Android.Content;
 using Android.Gms.Maps;
 using Android.Gms.Maps.Model;
 using Android.OS;
+using Android.Widget;
 using Java.Lang;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Platform.Android;
@@ -207,6 +208,13 @@ namespace Xamarin.Forms.Maps.Android
 			opts.SetTitle(pin.Label);
 			opts.SetSnippet(pin.Address);
 			
+			if (Element.PinTemplate is DataTemplate)
+			{
+				var viewCell = Element.PinTemplate.CreateContent() as ViewCell;
+				var view = viewCell?.View;
+				opts.SetIcon(PinTemplateHelper.ConvertViewToBitmapDescriptor(view, Context));
+			}
+
 			return opts;
 		}
 
