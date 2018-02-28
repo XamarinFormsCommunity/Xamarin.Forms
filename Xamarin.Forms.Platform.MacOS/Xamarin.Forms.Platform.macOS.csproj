@@ -72,6 +72,7 @@
       <Link>Flags.cs</Link>
     </Compile>
     <Compile Include="Controls\FormsBoxView.cs" />
+    <Compile Include="Controls\FormsNSDatePicker.cs" />
     <Compile Include="Extensions\FlowDirectionExtensions.cs" />
     <Compile Include="FormsApplicationDelegate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
