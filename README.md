@@ -15,7 +15,7 @@ Read more about the platform at https://www.xamarin.com/forms.
 ## Packages ##
 
 
-Platform/Feature               | Package name                              | Stable (2.5.0 branch)     |Nightly Feed [MyGet](https://www.myget.org/F/xamarinforms-ci/api/v2)  (master branch)
+Platform/Feature               | Package name                              | Stable (3.0.0 branch)     |Nightly Feed [MyGet](https://www.myget.org/F/xamarinforms-ci/api/v2)  (master branch)
 -----------------------|-------------------------------------------|-----------------------------|-------------------------
 Core             | `Xamarin.Forms` | [![NuGet](https://img.shields.io/nuget/v/Xamarin.Forms.svg?style=flat-square&label=nuget)](https://www.nuget.org/packages/Xamarin.Forms/)| [![MyGet](https://img.shields.io/myget/xamarinforms-ci/vpre/Xamarin.Forms.svg?style=flat-square&label=myget)](https://myget.org/feed/xamarinforms-ci/package/nuget/Xamarin.Forms)
 Maps                 | `Xamarin.Forms.Maps`    | [![NuGet](https://img.shields.io/nuget/v/Xamarin.Forms.Maps.svg?style=flat-square&label=nuget)](https://www.nuget.org/packages/Xamarin.Forms.Maps/) | [![MyGet](https://img.shields.io/myget/xamarinforms-ci/vpre/Xamarin.Forms.Maps.svg?style=flat-square&label=myget)](https://myget.org/feed/xamarinforms-ci/package/nuget/Xamarin.Forms.Maps)
@@ -75,16 +75,6 @@ Make sure you have Nuget.exe 4.0 or above and the latest dotnet core sdk (2.0.3)
      nuget restore Xamarin.Forms.sln
      msbuild Xamarin.Forms.sln
  
-
-##### API documentation changes #####
-If you change or add a public API on Xamarin.Forms the associated documentation should be updated and pushed as part of the pull request. This will also be needed to create a local nuget if you want. We rely on mdoc that is shipped in the repo on the tools folder. After building the .sln on Windows run:
-     
-     ./update-docs-windows.bat
-
-on OSX execute:
-     
-     make docs
-
 
 ## Coding Style ##
 We follow the style used by the [.NET Foundation](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md), with a few exceptions:

@@ -13,6 +13,13 @@ namespace Xamarin.Forms
 		static readonly List<Type> DependencyTypes = new List<Type>();
 		static readonly Dictionary<Type, DependencyData> DependencyImplementations = new Dictionary<Type, DependencyData>();
 
+		public static T Resolve<T>(DependencyFetchTarget fallbackFetchTarget = DependencyFetchTarget.GlobalInstance) where T : class
+		{
+			var result = DependencyResolver.Resolve(typeof(T)) as T;
+
+			return result ?? Get<T>(fallbackFetchTarget);
+		}
+
 		public static T Get<T>(DependencyFetchTarget fetchTarget = DependencyFetchTarget.GlobalInstance) where T : class
 		{
 			Initialize();
@@ -91,7 +98,18 @@ namespace Xamarin.Forms
 			// Naive implementation can easily take over a second to run
 			foreach (Assembly assembly in assemblies)
 			{
-				Attribute[] attributes = assembly.GetCustomAttributes(targetAttrType).ToArray();
+				Attribute[] attributes;
+				try
+				{
+					attributes = assembly.GetCustomAttributes(targetAttrType).ToArray();
+				}
+				catch (System.IO.FileNotFoundException)
+				{
+					// Sometimes the previewer doesn't actually have everything required for these loads to work
+					Log.Warning(nameof(Registrar), "Could not load assembly: {0} for Attibute {1} | Some renderers may not be loaded", assembly.FullName, targetAttrType.FullName);
+					continue;
+				}
+				
 				if (attributes.Length == 0)
 					continue;
 

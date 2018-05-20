@@ -1,16 +1,12 @@
-﻿using System;
-using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Xamarin.Forms.Internals;
 using static System.String;
 using WControl = System.Windows.Controls.Control;
 
 namespace Xamarin.Forms.Platform.WPF
 {
-	
 	public class EntryRenderer : ViewRenderer<Entry, FormsTextBox>
 	{
 		bool _fontApplied;
@@ -21,7 +17,7 @@ namespace Xamarin.Forms.Platform.WPF
 		{
 			if (e.NewElement != null)
 			{
-				if (Control == null) // construct and SetNativeControl and suscribe control event
+				if (Control == null) // Construct and SetNativeControl and suscribe control event
 				{
 					SetNativeControl(new FormsTextBox());
 					Control.LostFocus += OnTextBoxUnfocused;
@@ -29,7 +25,7 @@ namespace Xamarin.Forms.Platform.WPF
 					Control.KeyUp += TextBoxOnKeyUp;
 				}
 
-				// Update control property 
+				// Update Control properties
 				UpdateInputScope();
 				UpdateIsPassword();
 				UpdateText();
@@ -38,7 +34,7 @@ namespace Xamarin.Forms.Platform.WPF
 				UpdateFont();
 				UpdateAlignment();
 				UpdatePlaceholderColor();
-				UpdateIsReadOnly();
+				UpdateMaxLength();
 			}
 
 			base.OnElementChanged(e);
@@ -68,8 +64,8 @@ namespace Xamarin.Forms.Platform.WPF
 				UpdateAlignment();
 			else if (e.PropertyName == Entry.PlaceholderColorProperty.PropertyName)
 				UpdatePlaceholderColor();
-			else if (e.PropertyName == InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
+			else if (e.PropertyName == InputView.MaxLengthProperty.PropertyName)
+				UpdateMaxLength();
 		}
 		
 		internal override void OnModelFocusChangeRequested(object sender, VisualElement.FocusRequestArgs args)
@@ -191,7 +187,7 @@ namespace Xamarin.Forms.Platform.WPF
 
 		void UpdatePlaceholder()
 		{
-			//Control.Hint = Element.Placeholder ?? "";
+			Control.PlaceholderText = Element.Placeholder ?? string.Empty;
 		}
 
 		void UpdatePlaceholderColor()
@@ -201,7 +197,9 @@ namespace Xamarin.Forms.Platform.WPF
 			if (placeholderColor.IsDefault)
 			{
 				if (_placeholderDefaultBrush == null)
-					return;
+				{
+					_placeholderDefaultBrush = (Brush)WControl.ForegroundProperty.GetMetadata(typeof(FormsTextBox)).DefaultValue; 
+				}
 
 				// Use the cached default brush
 				Control.PlaceholderForegroundBrush = _placeholderDefaultBrush;
@@ -231,6 +229,16 @@ namespace Xamarin.Forms.Platform.WPF
 			Control.Select(Control.Text == null ? 0 : Control.Text.Length, 0);
 		}
 
+		void UpdateMaxLength()
+		{
+			Control.MaxLength = Element.MaxLength;
+
+			var currentControlText = Control.Text;
+
+			if (currentControlText.Length > Element.MaxLength)
+				Control.Text = currentControlText.Substring(0, Element.MaxLength);
+		}
+
 		bool _isDisposed;
 
 		protected override void Dispose(bool disposing)
@@ -250,11 +258,6 @@ namespace Xamarin.Forms.Platform.WPF
 
 			_isDisposed = true;
 			base.Dispose(disposing);
-		}
-
-		void UpdateIsReadOnly()
-		{
-			Control.IsReadOnly = Element.IsReadOnly;
 		}
 	}
 }

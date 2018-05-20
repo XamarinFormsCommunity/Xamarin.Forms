@@ -62,6 +62,7 @@ namespace Xamarin.Forms.Platform.iOS
 					Control.EditingDidBegin -= OnEditingBegan;
 					Control.EditingChanged -= OnEditingChanged;
 					Control.EditingDidEnd -= OnEditingEnded;
+                    Control.ShouldChangeCharacters -= ShouldChangeCharacters;
 				}
 			}
 
@@ -94,6 +95,8 @@ namespace Xamarin.Forms.Platform.iOS
 
 				textField.EditingDidBegin += OnEditingBegan;
 				textField.EditingDidEnd += OnEditingEnded;
+
+                textField.ShouldChangeCharacters += ShouldChangeCharacters;
 			}
 
 			UpdatePlaceholder();
@@ -104,7 +107,8 @@ namespace Xamarin.Forms.Platform.iOS
 			UpdateKeyboard();
 			UpdateAlignment();
 			UpdateAdjustsFontSizeToFitWidth();
-			UpdateIsReadOnly();
+			UpdateMaxLength();
+			UpdateReturnType();
 		}
 
 		protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -120,6 +124,8 @@ namespace Xamarin.Forms.Platform.iOS
 			else if (e.PropertyName == Xamarin.Forms.InputView.KeyboardProperty.PropertyName)
 				UpdateKeyboard();
 			else if (e.PropertyName == Xamarin.Forms.InputView.IsSpellCheckEnabledProperty.PropertyName)
+				UpdateKeyboard();
+			else if (e.PropertyName == Entry.IsTextPredictionEnabledProperty.PropertyName)
 				UpdateKeyboard();
 			else if (e.PropertyName == Entry.HorizontalTextAlignmentProperty.PropertyName)
 				UpdateAlignment();
@@ -138,8 +144,10 @@ namespace Xamarin.Forms.Platform.iOS
 				UpdateAdjustsFontSizeToFitWidth();
 			else if (e.PropertyName == VisualElement.FlowDirectionProperty.PropertyName)
 				UpdateAlignment();
-			else if (e.PropertyName == Xamarin.Forms.InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
+			else if (e.PropertyName == Xamarin.Forms.InputView.MaxLengthProperty.PropertyName)
+				UpdateMaxLength();
+			else if (e.PropertyName == Entry.ReturnTypeProperty.PropertyName)
+				UpdateReturnType();
 
 			base.OnElementPropertyChanged(sender, e);
 		}
@@ -209,12 +217,23 @@ namespace Xamarin.Forms.Platform.iOS
 
 		void UpdateKeyboard()
 		{
-			Control.ApplyKeyboard(Element.Keyboard);
-			if (!(Element.Keyboard is Internals.CustomKeyboard) && Element.IsSet(Xamarin.Forms.InputView.IsSpellCheckEnabledProperty))
+			var keyboard = Element.Keyboard;
+			Control.ApplyKeyboard(keyboard);
+			if (!(keyboard is Internals.CustomKeyboard))
 			{
-				if (!Element.IsSpellCheckEnabled)
+				if (Element.IsSet(Xamarin.Forms.InputView.IsSpellCheckEnabledProperty))
 				{
-					Control.SpellCheckingType = UITextSpellCheckingType.No;
+					if (!Element.IsSpellCheckEnabled)
+					{
+						Control.SpellCheckingType = UITextSpellCheckingType.No;
+					}
+				}
+				if (Element.IsSet(Xamarin.Forms.Entry.IsTextPredictionEnabledProperty))
+				{
+					if (!Element.IsTextPredictionEnabled)
+					{
+						Control.AutocorrectionType = UITextAutocorrectionType.No;
+					}
 				}
 			}
 			Control.ReloadInputViews();
@@ -262,9 +281,26 @@ namespace Xamarin.Forms.Platform.iOS
 				Control.Text = Element.Text;
 		}
 
-		void UpdateIsReadOnly()
+		void UpdateMaxLength()
 		{
-			Control.UserInteractionEnabled = !Element.IsReadOnly;
+			var currentControlText = Control.Text;
+
+			if (currentControlText.Length > Element.MaxLength)
+				Control.Text = currentControlText.Substring(0, Element.MaxLength);
 		}
+
+		bool ShouldChangeCharacters(UITextField textField, NSRange range, string replacementString)
+		{
+			var newLength = textField?.Text?.Length + replacementString.Length - range.Length;
+			return newLength <= Element?.MaxLength;
+		}
+
+		void UpdateReturnType()
+		{
+			if (Control == null || Element == null)
+				return;
+			Control.ReturnKeyType = Element.ReturnType.ToUIReturnKeyType();
+		}
+
 	}
 }

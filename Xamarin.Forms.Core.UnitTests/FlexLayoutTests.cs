@@ -358,5 +358,117 @@ namespace Xamarin.Forms.Core.UnitTests
 			Assert.That(measure.Request, Is.EqualTo(new Size(100, 20)));
 
 		}
+
+		[Test]
+		public void TestMarginsWithWrap()
+		{
+			var platform = new UnitPlatform();
+			var label0 = new Label {
+				Platform = platform,
+				IsPlatformEnabled = true,
+				Margin=6,
+			};
+			var label1 = new Label {
+				Platform = platform,
+				IsPlatformEnabled = true,
+				Margin=6,
+			};
+			var label2 = new Label {
+				Platform = platform,
+				IsPlatformEnabled = true,
+			};
+			FlexLayout.SetGrow(label0, 0);
+			FlexLayout.SetBasis(label0, new FlexBasis(.5f, true));
+			FlexLayout.SetGrow(label1, 0);
+			FlexLayout.SetBasis(label1, new FlexBasis(.5f, true));
+			FlexLayout.SetGrow(label2, 0);
+			FlexLayout.SetBasis(label2, new FlexBasis(1f, true));
+			var layout = new FlexLayout {
+				Platform = platform,
+				IsPlatformEnabled = true,
+				Direction = FlexDirection.Row,
+				Wrap = FlexWrap.Wrap,
+				AlignItems = FlexAlignItems.Start,
+				AlignContent = FlexAlignContent.Start,
+				Children = {
+					label0,
+					label1,
+					label2,
+				}
+			};
+
+			var measure = layout.Measure(300, double.PositiveInfinity);
+			Assert.That(measure.Request, Is.EqualTo(new Size(300, 52)));
+			layout.Layout(new Rectangle(0, 0, 300, 300));
+			Assert.That(label0.Bounds, Is.EqualTo(new Rectangle(6, 6, 138, 20)));
+			Assert.That(label1.Bounds, Is.EqualTo(new Rectangle(156, 6, 138, 20)));
+			Assert.That(label2.Bounds, Is.EqualTo(new Rectangle(0, 32, 300, 20)));
+		}
+
+		[Test]
+		//https://github.com/xamarin/Xamarin.Forms/issues/2551
+		public void TestReverseWithGrow()
+		{
+			var platform = new UnitPlatform();
+			var label0 = new Label {
+				Platform = platform,
+				IsPlatformEnabled = true,
+			};
+			FlexLayout.SetGrow(label0, 1);
+			var layout = new FlexLayout {
+				Platform = platform,
+				IsPlatformEnabled = true,
+				Direction = FlexDirection.ColumnReverse,
+				Children = {
+					label0,
+				}
+			};
+
+			layout.Layout(new Rectangle(0, 0, 300, 300));
+			Assert.That(label0.Bounds, Is.EqualTo(new Rectangle(0, 0, 300, 300)));
+		}
+
+		[Test]
+		public void TestIsVisible()
+		//https://github.com/xamarin/Xamarin.Forms/issues/2593
+		{
+			var platform = new UnitPlatform();
+			var label0 = new Label {
+				Platform = platform,
+				IsPlatformEnabled = true,
+			};
+			var label1 = new Label {
+				Platform = platform,
+				IsPlatformEnabled = true,
+			};
+			var label2 = new Label {
+				Platform = platform,
+				IsPlatformEnabled = true,
+			};
+			var layout = new FlexLayout {
+				Platform = platform,
+				IsPlatformEnabled = true,
+				Direction = FlexDirection.Column,
+				Children = {
+					label0,
+					label1,
+					label2,
+				}
+			};
+
+			layout.Layout(new Rectangle(0, 0, 300, 300));
+			Assert.That(label0.Bounds, Is.EqualTo(new Rectangle(0, 0, 300, 20)));
+			Assert.That(label1.Bounds, Is.EqualTo(new Rectangle(0, 20, 300, 20)));
+			Assert.That(label2.Bounds, Is.EqualTo(new Rectangle(0, 40, 300, 20)));
+
+			label1.IsVisible = false;
+			Assert.That(label0.Bounds, Is.EqualTo(new Rectangle(0, 0, 300, 20)));
+			Assert.That(label2.Bounds, Is.EqualTo(new Rectangle(0, 20, 300, 20)));
+
+			label0.IsVisible = false;
+			label1.IsVisible = true;
+			Assert.That(label1.Bounds, Is.EqualTo(new Rectangle(0, 0, 300, 20)));
+			Assert.That(label2.Bounds, Is.EqualTo(new Rectangle(0, 20, 300, 20)));
+		}	
 	}
 }

@@ -6,6 +6,7 @@
 	<UsingTask TaskName="Xamarin.Forms.Build.Tasks.GetTasksAbi" AssemblyFile="$(MSBuildThisFileDirectory)Xamarin.Forms.Build.Tasks.dll" />
 
 	<PropertyGroup>
+		<SynthesizeLinkMetadata>true</SynthesizeLinkMetadata>
 		<EnableDefaultXamlItems Condition="'$(EnableDefaultXamlItems)'==''">True</EnableDefaultXamlItems>
 		<_DefaultXamlItemsEnabled>False</_DefaultXamlItemsEnabled>
 		<EnableDefaultCssItems Condition="'$(EnableDefaultCssItems)'==''">True</EnableDefaultCssItems>
@@ -63,7 +64,7 @@
 		</CoreCompileDependsOn>
 	</PropertyGroup>
 
-	<Target Name="XamlG" BeforeTargets="BeforeCompile" Condition="'$(_XamlGAlreadyExecuted)'!='true'">
+	<Target Name="XamlG" BeforeTargets="BeforeCompile" DependsOnTargets="PrepareResourceNames" Condition="'$(_XamlGAlreadyExecuted)'!='true'">
 		<PropertyGroup>
 			<_XamlGAlreadyExecuted>true</_XamlGAlreadyExecuted>
 		</PropertyGroup>
@@ -85,10 +86,7 @@
 		</CompileDependsOn>
 	</PropertyGroup>
 
-	<Target Name="XamlC" AfterTargets="AfterCompile" Condition="'$(_XamlCAlreadyExecuted)'!='true'">
-		<PropertyGroup>
-			<_XamlCAlreadyExecuted>true</_XamlCAlreadyExecuted>
-		</PropertyGroup>
+	<Target Name="XamlC" AfterTargets="AfterCompile" Inputs="$(IntermediateOutputPath)$(TargetFileName)" Outputs="$(IntermediateOutputPath)XamlC.stamp">
 		<XamlCTask
 			Assembly = "$(IntermediateOutputPath)$(TargetFileName)"
 			ReferencePath = "@(ReferencePath)"
@@ -96,6 +94,9 @@
 			DebugSymbols = "$(DebugSymbols)"
 			DebugType = "$(DebugType)"
 			KeepXamlResources = "$(XFKeepXamlResources)" />
+		<Touch Files="$(IntermediateOutputPath)XamlC.stamp" AlwaysCreate="True">
+			<Output TaskParameter="TouchedFiles" ItemName="FileWrites"/>
+		</Touch>
 	</Target>
 
 	<!-- CssG -->
@@ -105,7 +106,7 @@
 			$(CoreCompileDependsOn);
 		</CoreCompileDependsOn>
 	</PropertyGroup>
-	<Target Name="CssG" BeforeTargets="BeforeCompile" Condition="'$(_CssGAlreadyExecuted)'!='true'">
+	<Target Name="CssG" BeforeTargets="BeforeCompile"  DependsOnTargets="PrepareResourceNames" Condition="'$(_CssGAlreadyExecuted)'!='true'">
 		<PropertyGroup>
 			<_CssGAlreadyExecuted>true</_CssGAlreadyExecuted>
 		</PropertyGroup>

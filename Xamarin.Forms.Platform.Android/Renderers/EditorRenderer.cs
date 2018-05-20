@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using Android.Content;
 using Android.Content.Res;
 using Android.OS;
@@ -17,6 +19,7 @@ namespace Xamarin.Forms.Platform.Android
 	{
 		bool _disposed;
 		TextColorSwitcher _textColorSwitcher;
+		ColorStateList defaultPlaceholdercolor;
 
 		public EditorRenderer(Context context) : base(context)
 		{
@@ -70,6 +73,8 @@ namespace Xamarin.Forms.Platform.Android
 
 				var useLegacyColorManagement = e.NewElement.UseLegacyColorManagement();
 				_textColorSwitcher = new TextColorSwitcher(edit.TextColors, useLegacyColorManagement);
+
+				defaultPlaceholdercolor = Control.HintTextColors;
 			}
 
 			edit.SetSingleLine(false);
@@ -82,7 +87,9 @@ namespace Xamarin.Forms.Platform.Android
 			UpdateInputType();
 			UpdateTextColor();
 			UpdateFont();
-			UpdateIsReadOnly();
+			UpdateMaxLength();
+			UpdatePlaceholderColor();
+			UpdatePlaceholderText();
 		}
 
 		protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -101,8 +108,12 @@ namespace Xamarin.Forms.Platform.Android
 				UpdateFont();
 			else if (e.PropertyName == Editor.FontSizeProperty.PropertyName)
 				UpdateFont();
-			else if (e.PropertyName == InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
+			else if (e.PropertyName == InputView.MaxLengthProperty.PropertyName)
+				UpdateMaxLength();
+			else if (e.PropertyName == Editor.PlaceholderProperty.PropertyName)
+				UpdatePlaceholderText();
+			else if (e.PropertyName == Editor.PlaceholderColorProperty.PropertyName)
+				UpdatePlaceholderColor();
 
 			base.OnElementPropertyChanged(sender, e);
 		}
@@ -185,15 +196,49 @@ namespace Xamarin.Forms.Platform.Android
 			_textColorSwitcher?.UpdateTextColor(Control, Element.TextColor);
 		}
 
+		void UpdatePlaceholderText()
+		{
+			if (Control.Hint == Element.Placeholder)
+				return;
+
+			Control.Hint = Element.Placeholder;
+		}
+
+		void UpdatePlaceholderColor()
+		{
+			if (Element.PlaceholderColor == Color.Default)
+				Control.SetHintTextColor(defaultPlaceholdercolor);
+			else
+				Control.SetHintTextColor(Element.PlaceholderColor.ToAndroid());
+		}
+
 		void OnKeyboardBackPressed(object sender, EventArgs eventArgs)
 		{
 			ElementController?.SendCompleted();
 			Control?.ClearFocus();
 		}
 
-		void UpdateIsReadOnly()
+		void UpdateMaxLength()
 		{
-			Control.Focusable = !Element.IsReadOnly;
+			var currentFilters = new List<IInputFilter>(Control?.GetFilters() ?? new IInputFilter[0]);
+
+			for (var i = 0; i < currentFilters.Count; i++)
+			{
+				if (currentFilters[i] is InputFilterLengthFilter)
+				{
+					currentFilters.RemoveAt(i);
+					break;
+				}
+			}
+
+			currentFilters.Add(new InputFilterLengthFilter(Element.MaxLength));
+
+			Control?.SetFilters(currentFilters.ToArray());
+
+			var currentControlText = Control?.Text;
+
+			if (currentControlText.Length > Element.MaxLength)
+				Control.Text = currentControlText.Substring(0, Element.MaxLength);
 		}
 	}
 }

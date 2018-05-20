@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,7 +50,7 @@ namespace Xamarin.Forms.Platform.UWP
 
 				if (List == null)
 				{
-					List = new WListView 
+					List = new WListView
 					{
 						IsSynchronizedWithCurrentItem = false,
 						ItemTemplate = (Windows.UI.Xaml.DataTemplate)WApp.Current.Resources["CellTemplate"],
@@ -73,13 +75,20 @@ namespace Xamarin.Forms.Platform.UWP
 				UpdateHeader();
 				UpdateFooter();
 				UpdateSelectionMode();
+				UpdateWindowsSpecificSelectionMode();
 				ClearSizeEstimate();
 			}
 		}
 
 		void OnCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
-			List.DataContext = new CollectionViewSource { Source = Element.ItemsSource, IsSourceGrouped = Element.IsGroupingEnabled };
+			if (e.Action == NotifyCollectionChangedAction.Reset)
+			{
+				List.DataContext =
+					new CollectionViewSource { Source = Element.ItemsSource, IsSourceGrouped = Element.IsGroupingEnabled };
+			}
+
+			List.UpdateLayout();
 		}
 
 		protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -115,9 +124,13 @@ namespace Xamarin.Forms.Platform.UWP
 				ClearSizeEstimate();
 				((CollectionViewSource)List.DataContext).Source = Element.ItemsSource;
 			}
-			else if (e.PropertyName == Specifics.SelectionModeProperty.PropertyName)
+			else if (e.PropertyName == ListView.SelectionModeProperty.PropertyName)
 			{
 				UpdateSelectionMode();
+			}
+			else if (e.PropertyName == Specifics.SelectionModeProperty.PropertyName)
+			{
+				UpdateWindowsSpecificSelectionMode();
 			}
 		}
 
@@ -134,6 +147,11 @@ namespace Xamarin.Forms.Platform.UWP
 			{
 				if (List != null)
 				{
+					foreach (ViewToRendererConverter.WrapperControl wrapperControl in FindDescendants<ViewToRendererConverter.WrapperControl>(List))
+					{
+						wrapperControl.CleanUp();
+					}
+
 					if (_subscribedToTapped)
 					{
 						_subscribedToTapped = false;
@@ -256,6 +274,20 @@ namespace Xamarin.Forms.Platform.UWP
 
 		void UpdateSelectionMode()
 		{
+			if (Element.SelectionMode == ListViewSelectionMode.None)
+			{
+				List.SelectionMode = Windows.UI.Xaml.Controls.ListViewSelectionMode.None;
+				List.SelectedIndex = -1;
+				Element.SelectedItem = null;
+			}
+			else if (Element.SelectionMode == ListViewSelectionMode.Single)
+			{
+				List.SelectionMode = Windows.UI.Xaml.Controls.ListViewSelectionMode.Single;
+			}
+		}
+
+		void UpdateWindowsSpecificSelectionMode()
+		{
 			if (Element.OnThisPlatform().GetSelectionMode() == PlatformConfiguration.WindowsSpecific.ListViewSelectionMode.Accessible)
 			{
 				// Using Tapped will disable the ability to use the Enter key
@@ -317,6 +349,18 @@ namespace Xamarin.Forms.Platform.UWP
 			ScrollTo(listProxy.ProxiedEnumerable, listProxy[0], ScrollToPosition.Start, true, true);
 		}
 
+		bool ScrollToItemWithAnimation(ScrollViewer viewer, object item)
+		{
+			var selectorItem = List.ContainerFromItem(item) as Windows.UI.Xaml.Controls.Primitives.SelectorItem;
+			var transform = selectorItem?.TransformToVisual(viewer.Content as UIElement);
+			var position = transform?.TransformPoint(new Windows.Foundation.Point(0, 0));
+			if (!position.HasValue)
+				return false;
+			// scroll with animation
+			viewer.ChangeView(position.Value.X, position.Value.Y, null);
+			return true;
+		}
+
 #pragma warning disable 1998 // considered for removal
 		async void ScrollTo(object group, object item, ScrollToPosition toPosition, bool shouldAnimate, bool includeGroup = false, bool previouslyFailed = false)
 #pragma warning restore 1998
@@ -325,7 +369,7 @@ namespace Xamarin.Forms.Platform.UWP
 			if (viewer == null)
 			{
 				RoutedEventHandler loadedHandler = null;
-				loadedHandler = async (o, e) => 
+				loadedHandler = async (o, e) =>
 				{
 					List.Loaded -= loadedHandler;
 
@@ -342,6 +386,10 @@ namespace Xamarin.Forms.Platform.UWP
 
 			object[] t = templatedItems.GetGroup(location.Item1).ItemsSource.Cast<object>().ToArray();
 			object c = t[location.Item2];
+
+			// scroll to desired item with animation
+			if (shouldAnimate && ScrollToItemWithAnimation(viewer, c))
+				return;
 
 			double viewportHeight = viewer.ViewportHeight;
 
@@ -518,7 +566,7 @@ namespace Xamarin.Forms.Platform.UWP
 			{
 				var templatedItems = TemplatedItemsView.TemplatedItems;
 				var selectedItemIndex = templatedItems.GetGlobalIndexOfItem(e.ClickedItem);
-				
+
 				OnListItemClicked(selectedItemIndex);
 			}
 		}

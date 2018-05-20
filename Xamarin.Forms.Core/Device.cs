@@ -103,17 +103,17 @@ namespace Xamarin.Forms
 			PlatformServices.BeginInvokeOnMainThread(action);
 		}
 
-        public static double GetNamedSize(NamedSize size, Element targetElement)
-        {
-            return GetNamedSize(size, targetElement.GetType());
-        }
+		public static double GetNamedSize(NamedSize size, Element targetElement)
+		{
+			return GetNamedSize(size, targetElement.GetType());
+		}
 
         public static double GetNamedSize(NamedSize size, Type targetElementType)
         {
             return GetNamedSize(size, targetElementType, false);
         }
 
-        [Obsolete("OnPlatform is obsolete as of version 2.3.4. Please use switch(RuntimePlatform) instead.")]
+        [Obsolete("OnPlatform is obsolete as of version 2.3.4. Please use 'switch (Device.RuntimePlatform)' instead.")]
         public static void OnPlatform(Action iOS = null, Action Android = null, Action WinPhone = null, Action Default = null)
         {
             switch (OS)
@@ -144,7 +144,7 @@ namespace Xamarin.Forms
             }
         }
 
-        [Obsolete("OnPlatform<> (generic) is obsolete as of version 2.3.4. Please use switch(RuntimePlatform) instead.")]
+        [Obsolete("OnPlatform<> (generic) is obsolete as of version 2.3.4. Please use 'switch (Device.RuntimePlatform)' instead.")]
         public static T OnPlatform<T>(T iOS, T Android, T WinPhone)
         {
             switch (OS)

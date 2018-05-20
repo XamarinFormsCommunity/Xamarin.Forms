@@ -9,6 +9,8 @@ namespace Xamarin.Forms.Core.UnitTests
 	{
 		const string NormalStateName = "Normal";
 		const string InvalidStateName = "Invalid";
+		const string FocusedStateName = "Focused";
+		const string DisabledStateName = "Disabled";
 		const string CommonStatesName = "CommonStates";
 
 		static VisualStateGroupList CreateTestStateGroups()
@@ -17,9 +19,13 @@ namespace Xamarin.Forms.Core.UnitTests
 			var visualStateGroup = new VisualStateGroup { Name = CommonStatesName };
 			var normalState = new VisualState { Name = NormalStateName };
 			var invalidState = new VisualState { Name = InvalidStateName };
+			var focusedState = new VisualState { Name = FocusedStateName };
+			var disabledState = new VisualState { Name = DisabledStateName };
 
 			visualStateGroup.States.Add(normalState);
 			visualStateGroup.States.Add(invalidState);
+			visualStateGroup.States.Add(focusedState);
+			visualStateGroup.States.Add(disabledState);
 
 			stateGroups.Add(visualStateGroup);
 
@@ -172,9 +178,89 @@ namespace Xamarin.Forms.Core.UnitTests
 		{
 			IList<VisualStateGroup> vsgs = CreateTestStateGroups();
 
-			var emptyStateName = new VisualState{Name = ""};
+			var emptyStateName = new VisualState { Name = "" };
 
 			Assert.Throws<InvalidOperationException>(() => vsgs[0].States.Add(emptyStateName));
+		}
+
+		[Test]
+		public void VerifyVisualStateChanges()
+		{
+			var label1 = new Label();
+			VisualStateManager.SetVisualStateGroups(label1, CreateTestStateGroups());
+
+			var groups1 = VisualStateManager.GetVisualStateGroups(label1);
+			Assert.That(groups1[0].CurrentState.Name, Is.EqualTo(NormalStateName));
+
+			label1.IsEnabled = false;
+
+			groups1 = VisualStateManager.GetVisualStateGroups(label1);
+			Assert.That(groups1[0].CurrentState.Name, Is.EqualTo(DisabledStateName));
+
+
+			label1.SetValue(VisualElement.IsFocusedPropertyKey, true);
+			groups1 = VisualStateManager.GetVisualStateGroups(label1);
+			Assert.That(groups1[0].CurrentState.Name, Is.EqualTo(DisabledStateName));
+
+			label1.IsEnabled = true;
+			groups1 = VisualStateManager.GetVisualStateGroups(label1);
+			Assert.That(groups1[0].CurrentState.Name, Is.EqualTo(FocusedStateName));
+
+
+			label1.SetValue(VisualElement.IsFocusedPropertyKey, false);
+			groups1 = VisualStateManager.GetVisualStateGroups(label1);
+			Assert.That(groups1[0].CurrentState.Name, Is.EqualTo(NormalStateName));
+
+		}
+
+		[Test]
+		public void VisualElementGoesToCorrectStateWhenAvailable()
+		{
+			var label = new Label();
+			double targetBottomMargin = 1.5;
+
+			var group = new VisualStateGroup();
+			var list = new VisualStateGroupList();
+
+			var normalState = new VisualState { Name = NormalStateName };
+			normalState.Setters.Add(new Setter { Property = View.MarginBottomProperty, Value = targetBottomMargin });
+
+			list.Add(group);
+			group.States.Add(normalState);
+
+			VisualStateManager.SetVisualStateGroups(label, list);
+
+			Assert.That(label.Margin.Bottom, Is.EqualTo(targetBottomMargin));
+		}
+
+		[Test]
+		public void VisualElementGoesToCorrectStateWhenAvailableFromSetter()
+		{
+			double targetBottomMargin = 1.5;
+
+			var group = new VisualStateGroup();
+			var list = new VisualStateGroupList();
+
+			var normalState = new VisualState { Name = NormalStateName };
+			normalState.Setters.Add(new Setter { Property = View.MarginBottomProperty, Value = targetBottomMargin });
+
+			var x = new Setter
+			{
+				Property = VisualStateManager.VisualStateGroupsProperty,
+				Value = list
+			};
+
+			list.Add(group);
+			group.States.Add(normalState);
+
+			var label1 = new Label();
+			var label2 = new Label();
+
+			x.Apply(label1);
+			x.Apply(label2);
+
+			Assert.That(label1.Margin.Bottom, Is.EqualTo(targetBottomMargin));
+			Assert.That(label2.Margin.Bottom, Is.EqualTo(targetBottomMargin));
 		}
 	}
 }

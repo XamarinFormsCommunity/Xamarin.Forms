@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Android.Graphics;
+using Android.Graphics.Drawables;
 using AImageView = Android.Widget.ImageView;
 
 namespace Xamarin.Forms.Platform.Android
@@ -8,7 +9,7 @@ namespace Xamarin.Forms.Platform.Android
 	internal static class ImageViewExtensions
 	{
 		// TODO hartez 2017/04/07 09:33:03 Review this again, not sure it's handling the transition from previousImage to 'null' newImage correctly
-		public static async Task UpdateBitmap(this AImageView imageView, Image newImage, Image previousImage = null)
+		public static async Task UpdateBitmap(this AImageView imageView, Image newImage, ImageSource source, Image previousImage = null, ImageSource previousImageSource = null)
 		{
 			if (imageView == null || imageView.IsDisposed())
 				return;
@@ -16,7 +17,10 @@ namespace Xamarin.Forms.Platform.Android
 			if (Device.IsInvokeRequired)
 				throw new InvalidOperationException("Image Bitmap must not be updated from background thread");
 
-			if (previousImage != null && Equals(previousImage.Source, newImage.Source))
+			source = source ?? newImage?.Source;
+			previousImageSource = previousImageSource ?? previousImage?.Source;
+
+			if (Equals(previousImageSource, source))
 				return;
 
 			var imageController = newImage as IImageController;
@@ -27,23 +31,33 @@ namespace Xamarin.Forms.Platform.Android
 
 			imageView.SetImageResource(global::Android.Resource.Color.Transparent);
 
-			ImageSource source = newImage?.Source;
 			Bitmap bitmap = null;
+			Drawable drawable = null;
+
 			IImageSourceHandler handler;
 
 			if (source != null && (handler = Internals.Registrar.Registered.GetHandlerForObject<IImageSourceHandler>(source)) != null)
 			{
-				try
+				if (handler is FileImageSourceHandler)
 				{
-					bitmap = await handler.LoadImageAsync(source, imageView.Context);
+					drawable = imageView.Context.GetDrawable((FileImageSource)source);
 				}
-				catch (TaskCanceledException)
+
+				if (drawable == null)
 				{
-					imageController?.SetIsLoading(false);
+					try
+					{
+						bitmap = await handler.LoadImageAsync(source, imageView.Context);
+					}
+					catch (TaskCanceledException)
+					{
+						imageController?.SetIsLoading(false);
+					}
 				}
 			}
 
-			if (newImage == null || !Equals(newImage.Source, source))
+			// Check if the source on the new image has changed since the image was loaded
+			if (newImage != null && !Equals(newImage.Source, source))
 			{
 				bitmap?.Dispose();
 				return;
@@ -51,8 +65,10 @@ namespace Xamarin.Forms.Platform.Android
 
 			if (!imageView.IsDisposed())
 			{
-				if (bitmap == null && source is FileImageSource)
-					imageView.SetImageResource(ResourceManager.GetDrawableByName(((FileImageSource)source).File));
+				if (bitmap == null && drawable != null)
+				{
+					imageView.SetImageDrawable(drawable);
+				}
 				else
 				{
 					imageView.SetImageBitmap(bitmap);
@@ -60,9 +76,15 @@ namespace Xamarin.Forms.Platform.Android
 			}
 
 			bitmap?.Dispose();
-
 			imageController?.SetIsLoading(false);
-			((IVisualElementController)newImage).NativeSizeChanged();
+			((IVisualElementController)newImage)?.NativeSizeChanged();
+
+		}
+
+		public static async Task UpdateBitmap(this AImageView imageView, Image newImage, Image previousImage = null)
+		{
+			await UpdateBitmap(imageView, newImage, newImage?.Source, previousImage, previousImage?.Source);
+
 		}
 	}
 }

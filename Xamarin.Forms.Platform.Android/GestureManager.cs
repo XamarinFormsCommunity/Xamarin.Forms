@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Android.Content;
@@ -44,7 +45,7 @@ namespace Xamarin.Forms.Platform.Android
 				return false;
 			}
 
-			if (!DetectorsValid()) 
+			if (!DetectorsValid())
 			{
 				return false;
 			}
@@ -63,10 +64,23 @@ namespace Xamarin.Forms.Platform.Android
 
 		public class TapAndPanGestureDetector : GestureDetector
 		{
-			InnerGestureListener _listener;
+			readonly InnerGestureListener _listener;
 			public TapAndPanGestureDetector(Context context, InnerGestureListener listener) : base(context, listener)
 			{
 				_listener = listener;
+				InitializeLongPressSettings();
+			}
+
+			void InitializeLongPressSettings()
+			{
+				// Right now this just disables long press, since we don't support a long press gesture
+				// in Forms. If we ever do, we'll need to selectively enable it, probably by hooking into the 
+				// InnerGestureListener and listening for the addition of any long press gesture recognizers.
+				// (since a long press will prevent a pan gesture from starting, we can't just leave support for it 
+				// on by default).
+				// Also, since the property is virtual we shouldn't just set it from the constructor.
+
+				IsLongpressEnabled = false;
 			}
 
 			public override bool OnTouchEvent(MotionEvent ev)
@@ -108,7 +122,13 @@ namespace Xamarin.Forms.Platform.Android
 		GestureDetector InitializeTapAndPanDetector()
 		{
 			var context = Control.Context;
-			var listener = new InnerGestureListener(new TapGestureHandler(() => View),
+			var listener = new InnerGestureListener(new TapGestureHandler(() => View, () =>
+			{
+				if (Element is View view)
+					return view.GetChildElements(Point.Zero) ?? new List<GestureElement>();
+
+				return new List<GestureElement>();
+			}),
 				new PanGestureHandler(() => View, context.FromPixels));
 
 			return new TapAndPanGestureDetector(context, listener);
@@ -138,7 +158,7 @@ namespace Xamarin.Forms.Platform.Android
 
 			if (e.NewElement != null)
 			{
-                e.NewElement.PropertyChanged += OnElementPropertyChanged;
+				e.NewElement.PropertyChanged += OnElementPropertyChanged;
 			}
 
 			UpdateInputTransparent();

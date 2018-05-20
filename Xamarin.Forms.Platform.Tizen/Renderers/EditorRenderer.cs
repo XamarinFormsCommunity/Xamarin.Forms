@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 
 namespace Xamarin.Forms.Platform.Tizen
 {
@@ -12,15 +11,17 @@ namespace Xamarin.Forms.Platform.Tizen
 			RegisterPropertyHandler(Editor.FontSizeProperty, UpdateFontSize);
 			RegisterPropertyHandler(Editor.FontFamilyProperty, UpdateFontFamily);
 			RegisterPropertyHandler(Editor.FontAttributesProperty, UpdateFontAttributes);
-			RegisterPropertyHandler(Editor.KeyboardProperty, UpdateKeyboard);
-			RegisterPropertyHandler(Editor.IsReadOnlyProperty, UpdateIsReadOnly);
+			RegisterPropertyHandler(InputView.KeyboardProperty, UpdateKeyboard);
+			RegisterPropertyHandler(InputView.MaxLengthProperty, UpdateMaxLength);
+			RegisterPropertyHandler(InputView.IsSpellCheckEnabledProperty, UpdateIsSpellCheckEnabled);
 		}
 
 		protected override void OnElementChanged(ElementChangedEventArgs<Editor> e)
 		{
 			if (Control == null)
 			{
-				var entry = new Native.Entry(Forms.NativeParent)
+				// Multiline EditField style is only available on Mobile and TV profile
+				var entry = Device.Idiom == TargetIdiom.Phone || Device.Idiom == TargetIdiom.TV ? new Native.EditfieldEntry(Forms.NativeParent, "multiline") : new Native.Entry(Forms.NativeParent)
 				{
 					IsSingleLine = false,
 					PropagateEvents = false,
@@ -28,6 +29,8 @@ namespace Xamarin.Forms.Platform.Tizen
 				entry.Focused += OnFocused;
 				entry.Unfocused += OnUnfocused;
 				entry.TextChanged += OnTextChanged;
+				entry.Unfocused += OnCompleted;
+				entry.PrependMarkUpFilter(MaxLengthFilter);
 
 				SetNativeControl(entry);
 			}
@@ -47,6 +50,11 @@ namespace Xamarin.Forms.Platform.Tizen
 				}
 			}
 			base.Dispose(disposing);
+		}
+
+		protected override Size MinimumSize()
+		{
+			return (Control as Native.IMeasurable).Measure(Control.MinimumWidth, Control.MinimumHeight).ToDP();
 		}
 
 		void OnTextChanged(object sender, EventArgs e)
@@ -113,13 +121,26 @@ namespace Xamarin.Forms.Platform.Tizen
 		{
 			if (initialize && Element.Keyboard == Keyboard.Default)
 				return;
-
-			Control.Keyboard = Element.Keyboard.ToNative();
+			Control.UpdateKeyboard(Element.Keyboard, Element.IsSpellCheckEnabled, true);
 		}
 
-		void UpdateIsReadOnly()
+		void UpdateIsSpellCheckEnabled()
 		{
-			Control.AllowFocus(!Element.IsReadOnly);
+			Control.InputHint = Element.Keyboard.ToInputHints(Element.IsSpellCheckEnabled, true);
+		}
+
+		void UpdateMaxLength()
+		{
+			if (Control.Text.Length > Element.MaxLength)
+				Control.Text = Control.Text.Substring(0, Element.MaxLength);
+		}
+
+		string MaxLengthFilter(ElmSharp.Entry entry, string s)
+		{
+			if (entry.Text.Length < Element.MaxLength)
+				return s;
+
+			return null;
 		}
 	}
 }

@@ -47,8 +47,9 @@ namespace Xamarin.Forms.Platform.UWP
 				UpdateInputScope();
 				UpdateAlignment();
 				UpdatePlaceholderColor();
+				UpdateMaxLength();
 				UpdateDetectReadingOrderFromContent();
-				UpdateIsReadOnly();
+				UpdateReturnType();
 			}
 		}
 
@@ -79,6 +80,8 @@ namespace Xamarin.Forms.Platform.UWP
 				UpdateInputScope();
 			else if (e.PropertyName == InputView.IsSpellCheckEnabledProperty.PropertyName)
 				UpdateInputScope();
+			else if (e.PropertyName == Entry.IsTextPredictionEnabledProperty.PropertyName)
+				UpdateInputScope();
 			else if (e.PropertyName == Entry.FontAttributesProperty.PropertyName)
 				UpdateFont();
 			else if (e.PropertyName == Entry.FontFamilyProperty.PropertyName)
@@ -91,10 +94,12 @@ namespace Xamarin.Forms.Platform.UWP
 				UpdatePlaceholderColor();
 			else if (e.PropertyName == VisualElement.FlowDirectionProperty.PropertyName)
 				UpdateAlignment();
+			else if (e.PropertyName == InputView.MaxLengthProperty.PropertyName)
+				UpdateMaxLength();
 			else if (e.PropertyName == Specifics.DetectReadingOrderFromContentProperty.PropertyName)
 				UpdateDetectReadingOrderFromContent();
-			else if (e.PropertyName == InputView.IsReadOnlyProperty.PropertyName)
-				UpdateIsReadOnly();
+			else if (e.PropertyName == Entry.ReturnTypeProperty.PropertyName)
+				UpdateReturnType();
 		}
 
 		protected override void UpdateBackgroundColor()
@@ -178,7 +183,10 @@ namespace Xamarin.Forms.Platform.UWP
 			}
 			else
 			{
-				Control.ClearValue(TextBox.IsTextPredictionEnabledProperty);
+				if (entry.IsSet(Entry.IsTextPredictionEnabledProperty))
+					Control.IsTextPredictionEnabled = entry.IsTextPredictionEnabled;
+				else
+					Control.ClearValue(TextBox.IsTextPredictionEnabledProperty);
 				if (entry.IsSet(InputView.IsSpellCheckEnabledProperty))
 					Control.IsSpellCheckEnabled = entry.IsSpellCheckEnabled;
 				else
@@ -224,7 +232,17 @@ namespace Xamarin.Forms.Platform.UWP
 			BrushHelpers.UpdateColor(textColor, ref _defaultTextColorFocusBrush,
 				() => Control.ForegroundFocusBrush, brush => Control.ForegroundFocusBrush = brush);
 		}
+    
+		void UpdateMaxLength()
+		{
+			Control.MaxLength = Element.MaxLength;
 
+			var currentControlText = Control.Text;
+
+			if (currentControlText.Length > Element.MaxLength)
+				Control.Text = currentControlText.Substring(0, Element.MaxLength);
+		}
+    
 		void UpdateDetectReadingOrderFromContent()
 		{
 			if (Element.IsSet(Specifics.DetectReadingOrderFromContentProperty))
@@ -240,9 +258,12 @@ namespace Xamarin.Forms.Platform.UWP
 			}
 		}
 
-		void UpdateIsReadOnly()
+		void UpdateReturnType()
 		{
-			Control.IsReadOnly = Element.IsReadOnly;
+			if (Control == null || Element == null)
+				return;
+
+			Control.InputScope = Element.ReturnType.ToInputScope();
 		}
 	}
 }
